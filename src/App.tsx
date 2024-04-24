@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import Map, { Layer, Source } from "react-map-gl";
-import ControlPanel from "./control-panel";
 
 import { dataLayer } from "./map-style";
-import { updatePercentiles } from "./utils";
 
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiYWxpb3NtYW5la21la2NpIiwiYSI6ImNsdmRzczV2NDAyNWYya285dzR5dGI1c2UifQ.fP82zA0upbGwlIFuWlmu8g"; // Set your mapbox token here
@@ -17,7 +15,7 @@ export default function App() {
   useEffect(() => {
     /* global fetch */
     fetch(
-      "https://raw.githubusercontent.com/uber/react-map-gl/master/examples/.data/us-income.geojson"
+      "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
     )
       .then((resp) => resp.json())
       .then((json) => setAllData(json))
@@ -36,10 +34,8 @@ export default function App() {
   }, []);
 
   const data = useMemo(() => {
-    return (
-      allData && updatePercentiles(allData, (f) => f.properties.income[year])
-    );
-  }, [allData, year]);
+    return allData;
+  }, [allData]);
 
   return (
     <>
@@ -62,18 +58,10 @@ export default function App() {
             className="tooltip"
             style={{ left: hoverInfo.x, top: hoverInfo.y }}
           >
-            <div>State: {hoverInfo.feature.properties.name}</div>
-            <div>
-              Median Household Income: {hoverInfo.feature.properties.value}
-            </div>
-            <div>
-              Percentile: {(hoverInfo.feature.properties.percentile / 8) * 100}
-            </div>
+            <div>{hoverInfo.feature.properties.name}</div>
           </div>
         )}
       </Map>
-
-      <ControlPanel year={year} onChange={(value) => setYear(value)} />
     </>
   );
 }
