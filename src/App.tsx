@@ -5,21 +5,20 @@ import Map, { Layer, Source } from "react-map-gl";
 import { dataLayer } from "./map-style";
 
 const MAPBOX_TOKEN =
-  "pk.eyJ1IjoiYWxpb3NtYW5la21la2NpIiwiYSI6ImNsdmRzczV2NDAyNWYya285dzR5dGI1c2UifQ.fP82zA0upbGwlIFuWlmu8g"; // Set your mapbox token here
+  "pk.eyJ1IjoiYWxpb3NtYW5la21la2NpIiwiYSI6ImNsdmRzczV2NDAyNWYya285dzR5dGI1c2UifQ.fP82zA0upbGwlIFuWlmu8g";
 
 export default function App() {
-  const [year, setYear] = useState(2015);
   const [allData, setAllData] = useState(null);
   const [hoverInfo, setHoverInfo] = useState(null);
 
   useEffect(() => {
-    /* global fetch */
+
     fetch(
       "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
     )
       .then((resp) => resp.json())
       .then((json) => setAllData(json))
-      .catch((err) => console.error("Could not load data", err)); // eslint-disable-line
+      .catch((err) => console.error("Could not load data", err));
   }, []);
 
   const onHover = useCallback((event) => {
@@ -29,7 +28,6 @@ export default function App() {
     } = event;
     const hoveredFeature = features && features[0];
 
-    // prettier-ignore
     setHoverInfo(hoveredFeature && {feature: hoveredFeature, x, y});
   }, []);
 
