@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import Map, { Layer, Source, useMap } from "react-map-gl";
+import Map, { Layer, Source } from "react-map-gl";
+import ControlPanel from "./control-panel";
+
+import { dataLayer } from "./map-style";
+import { updatePercentiles } from "./utils";
 
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiYWxpb3NtYW5la21la2NpIiwiYSI6ImNsdmRzczV2NDAyNWYya285dzR5dGI1c2UifQ.fP82zA0upbGwlIFuWlmu8g"; // Set your mapbox token here
@@ -9,9 +13,6 @@ export default function App() {
   const [year, setYear] = useState(2015);
   const [allData, setAllData] = useState(null);
   const [hoverInfo, setHoverInfo] = useState(null);
-  const { current } = useMap();
-
-  console.log(current);
 
   useEffect(() => {
     /* global fetch */
@@ -22,6 +23,23 @@ export default function App() {
       .then((json) => setAllData(json))
       .catch((err) => console.error("Could not load data", err)); // eslint-disable-line
   }, []);
+
+  const onHover = useCallback((event) => {
+    const {
+      features,
+      point: { x, y },
+    } = event;
+    const hoveredFeature = features && features[0];
+
+    // prettier-ignore
+    setHoverInfo(hoveredFeature && {feature: hoveredFeature, x, y});
+  }, []);
+
+  const data = useMemo(() => {
+    return (
+      allData && updatePercentiles(allData, (f) => f.properties.income[year])
+    );
+  }, [allData, year]);
 
   return (
     <>
@@ -34,21 +52,28 @@ export default function App() {
         mapStyle="mapbox://styles/mapbox/light-v9"
         mapboxAccessToken={MAPBOX_TOKEN}
         interactiveLayerIds={["data"]}
+        onMouseMove={onHover}
       >
-        <Source type="vector" url="mapbox://mapbox.82pkq93d">
-          <Layer
-            {...{
-              id: "counties",
-              type: "fill",
-              "source-layer": "original",
-              paint: {
-                "fill-outline-color": "orange",
-                "fill-color": "rgba(55,55,55,0.5)",
-              },
-            }}
-          />
+        <Source type="geojson" data={data}>
+          <Layer {...dataLayer} />
         </Source>
+        {hoverInfo && (
+          <div
+            className="tooltip"
+            style={{ left: hoverInfo.x, top: hoverInfo.y }}
+          >
+            <div>State: {hoverInfo.feature.properties.name}</div>
+            <div>
+              Median Household Income: {hoverInfo.feature.properties.value}
+            </div>
+            <div>
+              Percentile: {(hoverInfo.feature.properties.percentile / 8) * 100}
+            </div>
+          </div>
+        )}
       </Map>
+
+      <ControlPanel year={year} onChange={(value) => setYear(value)} />
     </>
   );
 }
