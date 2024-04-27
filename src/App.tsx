@@ -1,14 +1,26 @@
-import { useCallback, useState } from "react";
-import { createRoot } from "react-dom/client";
+// App.tsx
+import { useCallback, useEffect, useState } from "react";
 import DataLoader from "./components/DataLoader";
 import MapComponent from "./components/MapComponent";
 import Tooltip from "./components/Tooltip";
-import mapboxgl from "mapbox-gl"; // Ensure you have mapbox-gl installed and imported
+
+import { createRoot } from "react-dom/client";
+import { fetchCovidData } from "./components/CovidData";
 
 export default function App() {
   const [hoverInfo, setHoverInfo] = useState(null);
+  const [countryData, setCountryData] = useState([]);
 
-  const onHover = useCallback((event: mapboxgl.MapMouseEvent) => {
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchCovidData();
+      setCountryData(data);
+    };
+
+    loadData();
+  }, []);
+
+  const onHover = useCallback((event) => {
     const {
       features,
       point: { x, y },
@@ -23,14 +35,12 @@ export default function App() {
       {(data) => (
         <>
           <MapComponent data={data} onHover={onHover} />
-          <Tooltip hoverInfo={hoverInfo} />
+          <Tooltip hoverInfo={hoverInfo} countryData={countryData} />
         </>
       )}
     </DataLoader>
   );
 }
-
 export function renderToDom(container: HTMLElement) {
   createRoot(container).render(<App />);
 }
-

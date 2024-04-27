@@ -15,7 +15,6 @@ const DataLoader: React.FC<DataLoaderProps> = ({ children }) => {
       .then((json) => setData(json))
       .catch((err) => console.error("Could not load data", err));
   }, []);
-
   return data ? children(data) : null;
 };
 
